@@ -19,6 +19,11 @@ fragger performs the following key steps:
 
 1. **Clone fragger from GitHub:**
    ```bash
+   https:
+   git clone https://github.com/rohansohini/fragger.git
+   ```
+    ```bash
+   ssh:
    git clone https://github.com/rohansohini/fragger.git
    ```
 
