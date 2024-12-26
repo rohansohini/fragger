@@ -19,7 +19,7 @@ fragger performs the following key steps:
 
 1. **Clone fragger from GitHub:**
    ```bash
-   git clone https://github.com/yourusername/fragger.git
+   git clone https://github.com/rohansohini/fragger.git
    ```
 
 2. **Set the working directory:**
