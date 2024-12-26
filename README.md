@@ -18,14 +18,14 @@ fragger performs the following key steps:
 ## Installation
 
 1. **Clone fragger from GitHub:**
-   ```bash
-   https:
-   git clone https://github.com/rohansohini/fragger.git
-   ```
-    ```bash
-   ssh:
-   git clone https://github.com/rohansohini/fragger.git
-   ```
+   - **HTTPS:**
+     ```bash
+     git clone https://github.com/rohansohini/fragger.git
+     ```
+   - **SSH:**
+     ```bash
+     git clone git@github.com:rohansohini/fragger.git
+     ```
 
 2. **Set the working directory:**
    Ensure the working directory is set to the "fragger" folder:
