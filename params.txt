@@ -1,14 +1,30 @@
 # Separate genes with a comma (e.g. genes=RUNX3 or genes=RUNX3,ACTB) 
-genes=RUNX3,KLF6,ACTB
+genes=KLF6
+
+# Set the length of your fragments
+# Ex: For RUNX3 and fragsize  being 100, 
+# this will split RUNX3 into 100 bp fragments
+fragsize=25
 
 # Set the eval threshold for the BLAST query
-eval=0.0001
+# e-val describes the probability that a random
+# string of nucleotides that is the same length
+# as your query matches to the subject
+# Lower is stricter
+eval=1
+
+# Set the word size for the BLAST query
+# BLAST will split the queried sequence into
+# fragments of the specified word length and
+# use the small fragments to find a seed to
+# start searching
+wordsize=15
 
 # Set the number of proteins to retrieve in protein network
 # Ex: For RUNX3, string-db will return the n top number of proteins
 # predicted to be in it's protein network
 # Default: 10
-limit=10
+limit=5
 
 # Number of cores available
 ncores=12

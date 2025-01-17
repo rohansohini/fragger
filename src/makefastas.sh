@@ -10,6 +10,10 @@ FASTA_DIR="fasta"  # Path to the fasta directory
 # Clear all previous fasta files
 rm -f "$FASTA_DIR"/*.fasta
 
+# Import parameters from params.txt
+PARAMS_FILE="./params.txt"
+frag_size=$(grep -oP '^fragsize=\K.*' "$PARAMS_FILE")
+
 # Ensure required directories exist
 if [ ! -d "$FASTA_DIR" ]; then
     echo "FASTA directory does not exist. Creating it..."
@@ -26,5 +30,5 @@ fi
 echo "Generating FASTA files..."
 while IFS= read -r gene_symbol; do
     echo "Processing gene: $gene_symbol"
-    perl "src/fragments.pl" "$gene_symbol" "${FASTA_DIR}"
+    perl "src/fragments.pl" "$gene_symbol" "$frag_size" "${FASTA_DIR}"
 done < "$GENE_LIST"

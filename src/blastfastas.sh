@@ -17,6 +17,7 @@ OUTPUT_FILE="$RESULTS_DIR/raw.csv"  # Combined BLAST output file
 # Import parameters from params.txt
 PARAMS_FILE="./params.txt"
 eval=$(grep -oP '^eval=\K.*' "$PARAMS_FILE")
+wordsize=$(grep -oP '^wordsize=\K.*' "$PARAMS_FILE")
 ncores=$(grep -oP '^ncores=\K.*' "$PARAMS_FILE")
 
 # Ensure required directories exist
@@ -32,25 +33,14 @@ fi
 echo "Running BLASTN..."
 
 # Initialize the output file (overwrite if it exists) and add column names
-echo -e "qseqid,tsseqid,tpident,tlength,tmismatch,tgapopen,tqstart,tqend,tsstart,tsend,tevalue,tbitscore" > "$OUTPUT_FILE"
+echo -e "seqid,sseqid,pident,length,mismatch,gapopen,sstart,send,qseq,sseq,evalue,bitscore" > "$OUTPUT_FILE"
 
 for fasta_file in "$FASTA_DIR"/*.fasta; do
     echo "Processing $fasta_file..."
 
-    # Extract the number of nucleotides in the first sequence entry
-    FIRST_ENTRY_LENGTH=$(awk '/^>/ {if (NR > 1) exit} /^[^>]/ {seq = seq $0} END {print length(seq)}' "$fasta_file")
-    if [ -z "$FIRST_ENTRY_LENGTH" ]; then
-        echo "Error: Could not determine the length of the first entry in $fasta_file"
-        continue
-    fi
-
-    # Calculate word size (ceiling of length/15)
-    WORD_SIZE=$(( (FIRST_ENTRY_LENGTH + 14) / 15 ))
-    echo "Calculated word_size for $fasta_file: $WORD_SIZE"
-
     # Run BLASTN
-    echo "Running BLAST for $fasta_file with word_size $WORD_SIZE..."
-    blastn -db "$BLAST_DB" -query "$fasta_file" -word_size "$WORD_SIZE" -evalue "$eval" -num_threads "$ncores" -outfmt "10 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore" >> "$OUTPUT_FILE"
+    echo "Running BLAST for $fasta_file with word_size $wordsize and e_val $eval..."
+    blastn -db "$BLAST_DB" -query "$fasta_file" -word_size "$wordsize" -evalue "$eval" -num_threads "$ncores" -outfmt "10 qseqid sseqid pident length mismatch gapopen sstart send qseq sseq evalue bitscore" >> "$OUTPUT_FILE"
 done
 
 echo "All BLAST results have been written to $OUTPUT_FILE."

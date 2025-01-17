@@ -2,15 +2,12 @@ use strict;
 use warnings;
 use HTTP::Tiny;
 use JSON;
-use POSIX qw(ceil);
-
-# Set the number of fragments n
-my $n = 50;
 
 # Get the input gene symbol and output directory from the command line
 my $gene_symbol = $ARGV[0];
-my $output_dir = $ARGV[1];
-die "Usage: $0 <gene_symbol> <output_dir>\n" unless defined $gene_symbol && defined $output_dir;
+my $frag_size = $ARGV[1];
+my $output_dir = $ARGV[2];
+die "Usage: $0 <gene_symbol> <frag_size> <output_dir>\n" unless defined $gene_symbol && defined $frag_size &&defined $output_dir;
 
 # Ensure the directory exists and ends with a slash
 die "Output directory $output_dir does not exist!\n" unless -d $output_dir;
@@ -49,10 +46,9 @@ my $sequence = $response2->{content};
 $sequence =~ s/[^ATCGN]//gi;
 
 # Step 3: Split the sequence into x-bp to create n fragments
-my $chunk_size = ceil(length($sequence) / $n);
 my @fragments;
-for (my $i = 0; $i < length($sequence); $i += $chunk_size) {
-    push @fragments, substr($sequence, $i, $chunk_size);
+for (my $i = 0; $i < length($sequence); $i += $frag_size) {
+    push @fragments, substr($sequence, $i, $frag_size);
 }
 
 # Step 4: Create a FASTA file with the fragments
@@ -64,7 +60,8 @@ open(my $fh, '>', $output_file) or die "Cannot open $output_file: $!\n";
 
 my $fragment_number = 1;
 foreach my $fragment (@fragments) {
-    print $fh ">" . $gene_symbol . "_" . $fragment_number . "\n";
+    my $padded_number = sprintf("%04d", $fragment_number);
+    print $fh ">" . $gene_symbol . "_" . $padded_number . "\n";
     print $fh $fragment . "\n";
     $fragment_number++;
 }

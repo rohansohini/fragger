@@ -36,17 +36,17 @@ with open(GENE_LIST, "r") as f:
 
 def annotate_row(row):
     """Annotate a single row with gene information."""
-    tsseqid = row["tsseqid"]
-    tsstart = int(row["tsstart"])
-    tsend = int(row["tsend"])
+    sseqid = row["sseqid"]
+    sstart = int(row["sstart"])
+    send = int(row["send"])
 
     try:
-        chrom_ref = tsseqid.split("|")[3]  # Extract e.g., NC_000001.11
+        chrom_ref = sseqid.split("|")[3]  # Extract e.g., NC_000001.11
         chrom_num = chrom_ref.replace("NC_", "").split(".")[0].lstrip("0")  # Remove 'NC_' and leading zeros
     except IndexError:
         chrom_num = ""
 
-    start_coord, end_coord = (min(tsstart, tsend), max(tsstart, tsend))
+    start_coord, end_coord = (min(sstart, send), max(sstart, send))
 
     gene = ""
     if chrom_num and start_coord and end_coord:
