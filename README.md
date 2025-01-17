@@ -4,7 +4,7 @@
 **fragger** is a custom tool designed to study the role of sequence similarity in transcriptional adaptation. Transcriptional adaptation is an mRNA-mediated genetic compensation mechanism where certain mutations rendering a gene non-functional can lead to the upregulation of a *similar* compensatory gene. fragger helps explore the importance of nucleotide similarity between mutated genes and their compensators.
 
 fragger performs the following key steps:
-1. **Fragmentation:** Chop a gene's sequence (representing a mutated gene) into *n* fragments.
+1. **Fragmentation:** Chop a gene's sequence (representing a mutated gene) into fragments of *n* base-pairs.
 2. **BLAST Analysis:** Use BLAST to find genes with similar sequences to each fragment.
 3. **Filtering:** Remove BLAST results that belong to the same protein network.
 
@@ -39,6 +39,7 @@ fragger performs the following key steps:
    nano params.txt
    ```
    - **`genes:`** List the genes to be fragmented and BLASTed (comma-separated).
+   - **`wordsize:`** Set the word_size for BLAST query ([Learn more about e-values](https://www.metagenomics.wiki/tools/blast/default-word-size).
    - **`eval:`** Set the e-value threshold ([Learn more about e-values](https://www.ncbi.nlm.nih.gov/books/NBK279682/)).
    - **`limit:`** Limit the number of genes identified in the queried gene's protein network from [STRING-db](https://string-db.org/). Default: `10`.
    - **`ncores:`** Specify the number of cores available for the scripts.
