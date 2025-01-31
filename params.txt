@@ -1,30 +1,12 @@
-# Separate genes with a comma (e.g. genes=RUNX3 or genes=RUNX3,ACTB) 
-genes=KLF6
+# Each set of parameters should be listed on a separate line below
+# in the following format: [GENE,fmethod,fval,wordsize,eval,excgene,ppisize]
+# ex: [KLF6,nfrag,1,25,10,true,5]
+# An explanation of each parameter can be found on 
+# https://github.com/rohansohini/fragger
 
-# Set the length of your fragments
-# Ex: For RUNX3 and fragsize  being 100, 
-# this will split RUNX3 into 100 bp fragments
-fragsize=25
+# START BELOW HERE:
+[KLF6,nfrag,1,15,10,true,5]
+[RUNX3,fragsize,100,75,0.1,false,10]
 
-# Set the eval threshold for the BLAST query
-# e-val describes the probability that a random
-# string of nucleotides that is the same length
-# as your query matches to the subject
-# Lower is stricter
-eval=1
-
-# Set the word size for the BLAST query
-# BLAST will split the queried sequence into
-# fragments of the specified word length and
-# use the small fragments to find a seed to
-# start searching
-wordsize=15
-
-# Set the number of proteins to retrieve in protein network
-# Ex: For RUNX3, string-db will return the n top number of proteins
-# predicted to be in it's protein network
-# Default: 10
-limit=5
-
-# Number of cores available
+# SET THE NUMBER OF AVAILABLE CORES HERE:
 ncores=12
