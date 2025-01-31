@@ -1,11 +1,12 @@
+#!/bin/bash
+
 module purge all
-module load blast
+module load blast || { echo "Failed to load blast module! Exiting."; exit 1; }
 
 set -euo pipefail
 
 # Paths
-SRC_DIR="src"  # Path to the src directory
-GENE_LIST="$SRC_DIR/genes.txt"  # Path to the file containing gene symbols
+PARAMS_FILE="./params.txt"
 FASTA_DIR="fasta"  # Path to the fasta directory
 RESULTS_DIR="results"  # Path to the results directory
 
@@ -14,33 +15,65 @@ BLAST_DB=$(ls ./blast_db/*.nto | sed 's/\.nto$//')
 
 OUTPUT_FILE="$RESULTS_DIR/raw.csv"  # Combined BLAST output file
 
-# Import parameters from params.txt
-PARAMS_FILE="./params.txt"
-eval=$(grep -oP '^eval=\K.*' "$PARAMS_FILE")
-wordsize=$(grep -oP '^wordsize=\K.*' "$PARAMS_FILE")
-ncores=$(grep -oP '^ncores=\K.*' "$PARAMS_FILE")
-
 # Ensure required directories exist
 mkdir -p "$FASTA_DIR" "$RESULTS_DIR"
 
-# Check if gene list file is provided
-if [ -z "$GENE_LIST" ]; then
-    echo "Usage: $0 <gene_list_file>"
+# Check if params file is provided
+if [ -z "$PARAMS_FILE" ]; then
+    echo "Usage: $0 <params_file>"
     exit 1
 fi
 
+# Initialize arrays to store parameters
+genes=()
+wordsize=()
+eval=()
+
+# Read the params.txt file line by line
+while IFS= read -r line; do
+  # Skip comment lines and empty lines
+  if [[ "$line" =~ ^# || -z "$line" ]]; then
+    continue
+  fi
+
+  # Extract ncores if the line contains it
+  if [[ "$line" =~ ^ncores= ]]; then
+    ncores=$(echo "$line" | cut -d'=' -f2)
+    continue
+  fi
+
+  # Remove brackets and split the line into an array
+  IFS=',' read -r -a params <<< "${line//[\[\]]}"
+
+  # Append each parameter to its respective array
+  genes+=("${params[0]}")
+  wordsize+=("${params[3]}")
+  eval+=("${params[4]}")
+done < "$PARAMS_FILE"
+
+# Set default ncores if not found in params.txt
+ncores=${ncores:-12}
+
 # Step 2: Run BLASTN on the generated FASTA files
-echo "Running BLASTN..."
+echo "Running BLASTN with $ncores cores..."
 
 # Initialize the output file (overwrite if it exists) and add column names
 echo -e "seqid,sseqid,pident,length,mismatch,gapopen,sstart,send,qseq,sseq,evalue,bitscore" > "$OUTPUT_FILE"
 
-for fasta_file in "$FASTA_DIR"/*.fasta; do
-    echo "Processing $fasta_file..."
+# Loop through genes and process corresponding FASTA files
+for i in "${!genes[@]}"; do
+    gene="${genes[$i]}"
+    fasta_file="$FASTA_DIR/$gene.fasta"
+
+    if [ ! -f "$fasta_file" ]; then
+        echo "FASTA file for gene $gene not found: $fasta_file. Skipping..."
+        continue
+    fi
+
+    echo "Processing $fasta_file with wordsize ${wordsize[$i]} and eval ${eval[$i]}..."
 
     # Run BLASTN
-    echo "Running BLAST for $fasta_file with word_size $wordsize and e_val $eval..."
-    blastn -db "$BLAST_DB" -query "$fasta_file" -word_size "$wordsize" -evalue "$eval" -num_threads "$ncores" -outfmt "10 qseqid sseqid pident length mismatch gapopen sstart send qseq sseq evalue bitscore" >> "$OUTPUT_FILE"
+    blastn -db "$BLAST_DB" -query "$fasta_file" -word_size "${wordsize[$i]}" -evalue "${eval[$i]}" -num_threads "$ncores" -outfmt "10 qseqid sseqid pident length mismatch gapopen sstart send qseq sseq evalue bitscore" >> "$OUTPUT_FILE"
 done
 
 echo "All BLAST results have been written to $OUTPUT_FILE."

@@ -4,14 +4,17 @@ use HTTP::Tiny;
 use JSON;
 
 # Get the input gene symbol and output directory from the command line
-my $gene_symbol = $ARGV[0];
-my $frag_size = $ARGV[1];
-my $output_dir = $ARGV[2];
-die "Usage: $0 <gene_symbol> <frag_size> <output_dir>\n" unless defined $gene_symbol && defined $frag_size &&defined $output_dir;
+my $gene = $ARGV[0];
+my $fmethod = $ARGV[1];
+my $fval = $ARGV[2];
+my $FASTA_DIR = $ARGV[3];
+
+die "Usage: $0 <gene_symbol> <fmethod> <fval> <output_dir>\n"
+    unless defined $gene && defined $fmethod && defined $fval && defined $FASTA_DIR;
 
 # Ensure the directory exists and ends with a slash
-die "Output directory $output_dir does not exist!\n" unless -d $output_dir;
-$output_dir .= "/" unless $output_dir =~ /\/$/;
+die "Output directory $FASTA_DIR does not exist!\n" unless -d $FASTA_DIR;
+$FASTA_DIR .= "/" unless $FASTA_DIR =~ /\/$/;
 
 my $http = HTTP::Tiny->new();
 
@@ -19,7 +22,7 @@ my $http = HTTP::Tiny->new();
 my $server = 'https://rest.ensembl.org';
 
 # Step 1: Fetch Ensembl ID for the gene symbol
-my $ext1 = '/lookup/symbol/homo_sapiens/' . $gene_symbol . '?';
+my $ext1 = '/lookup/symbol/homo_sapiens/' . $gene . '?';
 my $response1 = $http->get($server . $ext1, {
     headers => { 'Content-type' => 'application/json' }
 });
@@ -45,14 +48,32 @@ my $sequence = $response2->{content};
 # Validate the sequence
 $sequence =~ s/[^ATCGN]//gi;
 
-# Step 3: Split the sequence into x-bp to create n fragments
+# Step 3: Split the sequence based on the fragmentation method
 my @fragments;
-for (my $i = 0; $i < length($sequence); $i += $frag_size) {
-    push @fragments, substr($sequence, $i, $frag_size);
+if ($fmethod eq 'nfrag') {
+    # Split the sequence into $fval number of fragments
+    my $fragment_length = int(length($sequence) / $fval);
+    my $remainder = length($sequence) % $fval;
+
+    for (my $i = 0; $i < length($sequence); $i += $fragment_length) {
+        my $length = $fragment_length;
+        # Add the remainder to the last fragment
+        if ($i + $fragment_length >= length($sequence) - $remainder) {
+            $length += $remainder;
+        }
+        push @fragments, substr($sequence, $i, $length);
+    }
+} elsif ($fmethod eq 'fragsize') {
+    # Split the sequence into fragments of size $fval
+    for (my $i = 0; $i < length($sequence); $i += $fval) {
+        push @fragments, substr($sequence, $i, $fval);
+    }
+} else {
+    die "Invalid fragmentation method: $fmethod. Use 'nfrag' or 'fragsize'.\n";
 }
 
 # Step 4: Create a FASTA file with the fragments
-my $output_file = $output_dir . "$gene_symbol.fasta";
+my $output_file = $FASTA_DIR . "$gene.fasta";
 if (-e $output_file) {
     warn "File $output_file already exists. Overwriting...\n";
 }
@@ -61,7 +82,7 @@ open(my $fh, '>', $output_file) or die "Cannot open $output_file: $!\n";
 my $fragment_number = 1;
 foreach my $fragment (@fragments) {
     my $padded_number = sprintf("%04d", $fragment_number);
-    print $fh ">" . $gene_symbol . "_" . $padded_number . "\n";
+    print $fh ">" . $gene . "_" . $padded_number . "\n";
     print $fh $fragment . "\n";
     $fragment_number++;
 }

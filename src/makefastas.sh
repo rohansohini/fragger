@@ -4,15 +4,32 @@ module purge all
 set -euo pipefail
 
 # Paths
-GENE_LIST="src/genes.txt"  # Path to the file containing gene symbols
+PARAMS_FILE="./params.txt"  # Path to the file containing parameters
 FASTA_DIR="fasta"  # Path to the fasta directory
 
 # Clear all previous fasta files
 rm -f "$FASTA_DIR"/*.fasta
 
-# Import parameters from params.txt
-PARAMS_FILE="./params.txt"
-frag_size=$(grep -oP '^fragsize=\K.*' "$PARAMS_FILE")
+# Initialize arrays to store parameters
+genes=()
+fmethods=()
+fvals=()
+
+# Read the params.txt file line by line
+while IFS= read -r line; do
+  # Skip comment lines, empty lines, and the ncores line
+  if [[ "$line" =~ ^# || -z "$line" || "$line" =~ ^ncores= ]]; then
+    continue
+  fi
+
+  # Remove brackets and split the line into an array
+  IFS=',' read -r -a params <<< "${line//[\[\]]}"
+
+  # Append each parameter to its respective array
+  genes+=("${params[0]}")
+  fmethods+=("${params[1]}")
+  fvals+=("${params[2]}")
+done < "$PARAMS_FILE"
 
 # Ensure required directories exist
 if [ ! -d "$FASTA_DIR" ]; then
@@ -20,15 +37,9 @@ if [ ! -d "$FASTA_DIR" ]; then
     mkdir -p "$FASTA_DIR" || { echo "Failed to create FASTA directory! Exiting."; exit 1; }
 fi
 
-# Check if gene list file is provided
-if [ -z "$GENE_LIST" ]; then
-    echo "Usage: $0 <gene_list_file>"
-    exit 1
-fi
-
 # Step 1: Create FASTA files using fragment.pl
 echo "Generating FASTA files..."
-while IFS= read -r gene_symbol; do
-    echo "Processing gene: $gene_symbol"
-    perl "src/fragments.pl" "$gene_symbol" "$frag_size" "${FASTA_DIR}"
-done < "$GENE_LIST"
+for i in "${!genes[@]}"; do
+    echo "Processing gene: ${genes[$i]}"
+    perl "src/fragment.pl" "${genes[$i]}" "${fmethods[$i]}" "${fvals[$i]}" "${FASTA_DIR}"
+done

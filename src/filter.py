@@ -6,33 +6,45 @@ from concurrent.futures import ProcessPoolExecutor
 # Parse params.txt to retrieve parameters
 PARAMS_FILE = "./params.txt"
 params = {}
+genes = []
 
 with open(PARAMS_FILE, "r") as f:
     for line in f:
         line = line.strip()
         if line and not line.startswith("#"):
-            key, value = line.split("=", 1)
-            params[key.strip()] = value.strip()
+            if line.startswith("ncores="):
+                # Extract ncores
+                params["ncores"] = int(line.split("=")[1].strip())
+            elif line.startswith("["):
+                # Extract gene parameters
+                gene_params = line.strip("[]").split(",")
+                genes.append(gene_params[0].strip())  # Add gene to the genes vector
 
 # Extract required parameters
-ncores = int(params.get("ncores", 1))
-GENE_LIST = "src/exclusion_list.txt"
+ncores = params.get("ncores", 1)
 INPUT_FILE = "results/raw.csv"
 OUTPUT_FILE = "results/unfiltered.csv"
 FILTERED_OUTPUT = "results/filtered.csv"
+EXC_DIR = "exclusion"  # Directory containing gene-specific exclusion lists
 
-# Ensure required files exist
-if not os.path.isfile(GENE_LIST):
-    print(f"Gene list file not found: {GENE_LIST}")
-    exit(1)
-
+# Ensure required files and directories exist
 if not os.path.isfile(INPUT_FILE):
     print(f"Input file not found: {INPUT_FILE}")
     exit(1)
 
-# Read the gene exclusion list
-with open(GENE_LIST, "r") as f:
-    exclude_genes = set(line.strip() for line in f)
+if not os.path.isdir(EXC_DIR):
+    print(f"Exclusion directory not found: {EXC_DIR}")
+    exit(1)
+
+def get_exclusion_list(gene):
+    """Get the exclusion list for a specific gene."""
+    exc_file = os.path.join(EXC_DIR, f"exc{gene}.txt")
+    if os.path.isfile(exc_file):
+        with open(exc_file, "r") as f:
+            return set(line.strip() for line in f)
+    else:
+        print(f"Exclusion list not found for gene: {gene}")
+        return set()
 
 def annotate_row(row):
     """Annotate a single row with gene information."""
@@ -77,7 +89,7 @@ with open(INPUT_FILE, "r", newline="") as infile, open(OUTPUT_FILE, "w", newline
         annotated_rows = list(executor.map(annotate_row, reader))
         writer.writerows(annotated_rows)
 
-# Step 2: Filter rows
+# Step 2: Filter rows using gene-specific exclusion lists
 print("Filtering out unwanted genes...")
 
 with open(OUTPUT_FILE, "r", newline="") as infile, open(FILTERED_OUTPUT, "w", newline="") as outfile:
@@ -86,6 +98,12 @@ with open(OUTPUT_FILE, "r", newline="") as infile, open(FILTERED_OUTPUT, "w", ne
     writer.writeheader()
 
     for row in reader:
+        seqid = row["seqid"]
+        gene_name = seqid.split("_")[0]  # Extract gene name from seqid (e.g., KLF6_0001 -> KLF6)
+
+        # Get the exclusion list for the specific gene
+        exclude_genes = get_exclusion_list(gene_name)
+
         gene_entry = row.get("gene", "").strip()
         if gene_entry:  # Check if the gene field is not empty
             genes = [gene.strip() for gene in gene_entry.split(",")]
@@ -101,4 +119,4 @@ with open(OUTPUT_FILE, "r", newline="") as infile, open(FILTERED_OUTPUT, "w", ne
 print(f"Filtered data written to {FILTERED_OUTPUT}.")
 
 # Optionally, remove the intermediate file
-os.remove(OUTPUT_FILE)
+#os.remove(OUTPUT_FILE)
