@@ -5,8 +5,8 @@
 # https://github.com/rohansohini/fragger
 
 # START BELOW HERE:
-[KLF6,nfrag,1,15,10,true,5]
-[RUNX3,fragsize,100,75,0.1,false,10]
+
+
 
 # SET THE NUMBER OF AVAILABLE CORES HERE:
-ncores=12
+ncores=28
