@@ -20,19 +20,15 @@ eval "$(conda shell.bash hook)"
 conda activate fragger || die "Failed to activate conda environment 'fragger'. Ensure it is installed."
 update "Environment activated."
 
-# 1. Build list of genes
-update "Building list of genes..."
-bash src/make_genes.sh || die "Failed to build list of genes. Check src/make_genes.sh for errors."
-
-# 2. Build exclusion list to exclude genes in protein network
+# 1. Build exclusion list to exclude genes in protein network
 update "Building exclusion list..."
-perl src/exclusion.pl || die "Failed to build exclusion list. Check src/exclusion.pl for errors."
+bash src/makeexclusions.sh || die "Failed to build exclusion lists. Check src/exclusion.pl for errors."
 
-# 3. Make the fasta files for each gene
+# 2. Make the fasta files for each gene
 update "Creating fasta files for each gene..."
 bash src/makefastas.sh || die "Failed to create fasta files. Check src/makefastas.sh for errors."
 
-# 4. BLAST the fasta files
+# 3. BLAST the fasta files
 update "Running BLAST on fasta files..."
 bash src/blastfastas.sh || die "Failed to run BLAST. Check src/blastfastas.sh for errors."
 
