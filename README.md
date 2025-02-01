@@ -4,7 +4,7 @@
 **fragger** is a custom tool designed to study the role of sequence similarity in transcriptional adaptation. Transcriptional adaptation is an mRNA-mediated genetic compensation mechanism where certain mutations rendering a gene non-functional can lead to the upregulation of a *similar* compensatory gene. fragger helps explore the importance of nucleotide similarity between mutated genes and their compensators.
 
 fragger performs the following key steps:
-1. **Fragmentation:** Chop a gene's sequence (representing a mutated gene) into fragments of *n* base-pairs.
+1. **Fragmentation:** Chop a gene's sequence (representing a mutated gene) into fragments.
 2. **BLAST Analysis:** Use BLAST to find genes with similar sequences to each fragment.
 3. **Filtering:** Remove BLAST results that belong to the same protein network.
 
@@ -34,15 +34,22 @@ fragger performs the following key steps:
    ```
 
 3. **Edit parameters:**
-   Open `params.txt` and adjust the parameters as needed:
+   Open `params.txt`, add vectors of genes with their parameters, and set the number of cores available.
    ```bash
    nano params.txt
    ```
-   - **`genes:`** List the genes to be fragmented and BLASTed (comma-separated).
+   ```bash
+   [GENE,fmethod,fval,wordsize,eval,excgene,ppisize]
+   ncores=c
+   ```
+   - **`GENE:`** List the genes to be fragmented and BLASTed (comma-separated).
+   - **`fmethod:`** Set the method for fragmentation. This can either be *nfrag* or *fragsize*. Choose *nfrag* if you want to divide into *n* fragments and choose *fragsize* if you want to divide into fragments of *v* length.
+   - **`fval:`** Depending on your fmethod, set to either *n* or *v*
    - **`wordsize:`** Set the word_size for BLAST query ([Learn more about e-values](https://www.metagenomics.wiki/tools/blast/default-word-size).
    - **`eval:`** Set the e-value threshold ([Learn more about e-values](https://www.ncbi.nlm.nih.gov/books/NBK279682/)).
-   - **`limit:`** Limit the number of genes identified in the queried gene's protein network from [STRING-db](https://string-db.org/). Default: `10`.
-   - **`ncores:`** Specify the number of cores available for the scripts.
+   - **`excgene:`** Set to either *true* or *false*. Setting to *true* will filter out BLAST matches to the **`GENE:`** from the final output.
+   - **`ppisize:`** Limit the number of genes identified in the queried gene's protein network from [STRING-db](https://string-db.org/). Default: `10`.
+   - **`ncores:`** Specify the number of cores, *c*, available for the scripts.
 
 4. **Run the environment setup script:**
    ```bash
@@ -70,6 +77,7 @@ fragger performs the following key steps:
    ```bash
    bash run.sh
    ```
+   For instructions on running fragger using an HPC (specifically Northwestern's Quest) see below.
 
 4. **Exit the screen:**
    Detach from the screen session without stopping the pipeline:
@@ -92,6 +100,45 @@ fragger performs the following key steps:
    your_path/fragger/results/filtered.csv
    ```
 
+---
+
+## Using fragger in Northwestern's HPC Quest
+
+1. **Set the working directory:**
+   ```bash
+   cd your_path/fragger/
+   ```
+   
+2. **Run the following line of commands in your home node each time you enter the HPC:**
+   ```bash
+   module purge all
+   module load perl/5.36.0-gcc-10.4.0 gcc/10.4.0-gcc-4.8.5
+
+   cpan
+   o conf makepl_arg "INSTALL_BASE=~/perl5"
+   o conf mbuildpl_arg "--install_base ~/perl5"
+   o conf commit
+   exit
+
+   export PERL5LIB=~/perl5/lib/perl5:$PERL5LIB
+   export PATH=~/perl5/bin:$PATH
+
+   cpan Canary::Stability
+   cpan JSON
+   ```
+   
+3. **Edit the account, available number of cores, and memory in  **`slurm_run.sh`****
+   Change the following lines below to match your job request. Example values are provided below:
+   ```bash
+   #SBATCH --account=p12345
+   #SBATCH --ntasks-per-node=28
+   #SBATCH --mem=50G
+   ```
+
+4. **Submit the job**
+   ```bash
+   sbatch slurm_run.sh
+   ```   
 ---
 
 ## Support
