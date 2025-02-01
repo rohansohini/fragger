@@ -39,7 +39,11 @@ fragger performs the following key steps:
    nano params.txt
    ```
    ```bash
-   [GENE,fmethod,fval,wordsize,eval,excgene,ppisize]
+   [GENE1,fmethod1,fval1,wordsize1,eval1,excgene1,ppisize1]
+   [GENE2,fmethod2,fval2,wordsize2,eval2,excgene2,ppisize2]
+   [GENE3,fmethod3,fval3,wordsize3,eval3,excgene3,ppisize3]
+   ...
+   
    ncores=c
    ```
    - **`GENE:`** List the genes to be fragmented and BLASTed (comma-separated).
