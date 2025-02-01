@@ -138,6 +138,7 @@ fragger performs the following key steps:
    #SBATCH --ntasks-per-node=28
    #SBATCH --mem=50G
    ```
+   Make sure --ntasks-per-node matches what was set in `params.txt` for **`ncores:`**.
 
 4. **Submit the job**
    ```bash
