@@ -119,4 +119,4 @@ with open(OUTPUT_FILE, "r", newline="") as infile, open(FILTERED_OUTPUT, "w", ne
 print(f"Filtered data written to {FILTERED_OUTPUT}.")
 
 # Optionally, remove the intermediate file
-#os.remove(OUTPUT_FILE)
+os.remove(OUTPUT_FILE)
