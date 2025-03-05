@@ -85,7 +85,7 @@ fragger performs the following key steps:
    ```
 ---
 
-## Running fragger
+## Running fragger in Northwestern's HPC Quest
 
 1. **Set the working directory:**
    ```bash
@@ -107,7 +107,7 @@ fragger performs the following key steps:
 
 ---
 
-## Using fragger in Northwestern's HPC Quest
+## Using fragger without an HPC
 
 1. **Set the working directory:**
    ```bash
