@@ -6,7 +6,7 @@ module load blast || { echo "Failed to load blast module! Exiting."; exit 1; }
 set -euo pipefail
 
 # Paths
-PARAMS_FILE="./params.txt"
+PARAMS_FILE="params.txt"
 FASTA_DIR="fasta"  # Path to the fasta directory
 RESULTS_DIR="results"  # Path to the results directory
 
@@ -42,13 +42,20 @@ while IFS= read -r line; do
     continue
   fi
 
+  # Extract organism if the line contains it
+  if [[ "$line" =~ ^organism= ]]; then
+    organism=$(echo "$line" | cut -d'=' -f2)
+    organism="${organism//_/}" # remove the underscore from the organism name
+    continue
+  fi
+
   # Remove brackets and split the line into an array
   IFS=',' read -r -a params <<< "${line//[\[\]]}"
 
   # Append each parameter to its respective array
   genes+=("${params[0]}")
-  wordsize+=("${params[3]}")
-  eval+=("${params[4]}")
+  wordsize+=("${params[1]}")
+  eval+=("${params[2]}")
 done < "$PARAMS_FILE"
 
 # Set default ncores if not found in params.txt
@@ -63,17 +70,17 @@ echo -e "seqid,sseqid,pident,length,mismatch,gapopen,sstart,send,qseq,sseq,evalu
 # Loop through genes and process corresponding FASTA files
 for i in "${!genes[@]}"; do
     gene="${genes[$i]}"
-    fasta_file="$FASTA_DIR/$gene.fasta"
+    FASTA_FILE="$FASTA_DIR/${gene}_${organism}.fasta"
 
-    if [ ! -f "$fasta_file" ]; then
-        echo "FASTA file for gene $gene not found: $fasta_file. Skipping..."
+    if [ ! -f "$FASTA_FILE" ]; then
+        echo "FASTA file for gene $gene not found: $FASTA_FILE. Skipping..."
         continue
     fi
 
-    echo "Processing $fasta_file with wordsize ${wordsize[$i]} and eval ${eval[$i]}..."
+    echo "Processing $FASTA_FILE with wordsize ${wordsize[$i]} and eval ${eval[$i]}..."
 
     # Run BLASTN
-    blastn -db "$BLAST_DB" -query "$fasta_file" -word_size "${wordsize[$i]}" -evalue "${eval[$i]}" -num_threads "$ncores" -outfmt "10 qseqid sseqid pident length mismatch gapopen sstart send qseq sseq evalue bitscore" >> "$OUTPUT_FILE"
+    blastn -db "$BLAST_DB" -query "$FASTA_FILE" -word_size "${wordsize[$i]}" -evalue "${eval[$i]}" -num_threads "$ncores" -outfmt "10 qseqid sseqid pident length mismatch gapopen sstart send qseq sseq evalue bitscore" >> "$OUTPUT_FILE"
 done
 
 echo "All BLAST results have been written to $OUTPUT_FILE."

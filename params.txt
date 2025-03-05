@@ -1,12 +1,16 @@
 # Each set of parameters should be listed on a separate line below
-# in the following format: [GENE,fmethod,fval,wordsize,eval,excgene,ppisize]
-# ex: [KLF6,nfrag,1,25,10,true,5]
-# An explanation of each parameter can be found on 
+# in the following format: [gene,wordsize,eval,excgene,ppisize]
+# ex: [KLF6,25,10,true,5]
+# An explanation of each parameter can be found on
 # https://github.com/rohansohini/fragger
 
 # START BELOW HERE:
 
 
-
 # SET THE NUMBER OF AVAILABLE CORES HERE:
 ncores=28
+
+# SET THE ORGANISM HERE:
+# Supported organisms include homo_sapiens, mus_musculus
+# danio_rerio, saccharomyces_cerevisiae, and caenorhabditis_elegans
+organism=
