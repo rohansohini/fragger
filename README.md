@@ -72,7 +72,7 @@ fragger performs the following key steps:
       --ref-version=1.0.0 \
       --memgb=100
    ```
-5. **Edit SLURM paramters in `slurm_run.sh`**
+5. **Edit SLURM paramters in `slurm_run.sh`:**
    Open `slurm_run.sh` using `nano slurm_run.sh` and edit the account number and computing requirements to fit your need. Ensure the number of cores matches `ncores` in `params.txt`.
    ```bash
    #SBATCH --account=XXXXX ## Required: your allocation/account name, i.e. eXXXX, pXXXX or bXXXX
