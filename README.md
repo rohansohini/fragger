@@ -1,5 +1,4 @@
-# fragger: BLAST-based Tool to Study Transcriptional Adaptation
-![Logo](logo.png)
+# fragger: BLAST-based Tool to Study Transcriptional Adaptation <img src="logo.png" width="60">
 
 ## Introduction
 **fragger** is a custom tool designed to study the role of sequence similarity in transcriptional adaptation. Transcriptional adaptation is an mRNA-mediated genetic compensation mechanism where certain mutations rendering a gene non-functional can lead to the upregulation of a *similar* compensatory gene. fragger helps explore the importance of nucleotide similarity between mutated genes and their compensators.
